@@ -1,0 +1,48 @@
+blueprint:
+  name: Turn off lights after no presence/motion detected for a period
+  description: >
+    Turn off the selected lights after no presence or motion is detected by the selected sensors for a specified duration.
+    The timer resets each time motion or presence is detected.
+
+  domain: automation
+  input:
+    lights:
+      name: Lights
+      description: The lights to turn off
+      selector:
+        target:
+          entity:
+            domain: light
+    presence_sensors:
+      name: Presence/Motion Sensors
+      description: The binary sensors with device class 'presence' or 'motion' to monitor
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class:
+            - presence
+            - motion
+          multiple: true
+    delay_time:
+      name: Delay Time
+      description: Time to wait after the last motion/presence is detected before turning off the lights
+      default: '00:05:00'
+      selector:
+        time:
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id: !input presence_sensors
+
+condition:
+  - condition: template
+    value_template: >
+      {% set sensors = expand(trigger.entity_id) %}
+      {{ sensors | selectattr('state', 'eq', 'on') | list | length == 0 }}
+
+action:
+  - delay: !input delay_time
+  - service: light.turn_off
+    target: !input lights
