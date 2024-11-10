@@ -1,5 +1,5 @@
 blueprint:
-  name: Turn off lights after no presence/motion detected for a period
+  name: Turn off lights after no presence/motion detected for a period v2.1
   description: >
     Turn off the selected lights after no presence or motion is detected by the selected sensors for a specified duration.
     The timer resets each time motion or presence is detected. You can specify hours when the automation should ignore turning off the lights.
@@ -55,11 +55,9 @@ condition:
       {{ sensors | selectattr('state', 'eq', 'on') | list | length == 0 }}
   - condition: template
     value_template: >
-      {% if ignore_start and ignore_end %}
-        {{ not (ignore_start <= now().strftime('%H:%M:%S') <= ignore_end) }}
-      {% else %}
-        true
-      {% endif %}
+      {% set ignore_start = (ignore_start if ignore_start else "00:00:00") %}
+      {% set ignore_end = (ignore_end if ignore_end else "00:00:00") %}
+      {{ not (ignore_start <= now().strftime('%H:%M:%S') <= ignore_end) or (ignore_start == "00:00:00" and ignore_end == "00:00:00") }}
 
 action:
   - delay: !input delay_time
