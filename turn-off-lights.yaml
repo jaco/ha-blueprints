@@ -56,7 +56,10 @@ condition:
   - condition: or
     conditions:
       - condition: template
-        value_template: "{{ not (is_state('input_datetime.ignore_start', '') or is_state('input_datetime.ignore_end', '')) }}"
+        value_template: >
+          {% set ignore_start = !input ignore_start %}
+          {% set ignore_end = !input ignore_end %}
+          {{ ignore_start == "" and ignore_end == "" }}
       - condition: time
         after: !input ignore_end
         before: !input ignore_start
