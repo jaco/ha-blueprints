@@ -53,18 +53,13 @@ condition:
     value_template: >
       {% set sensors = expand(trigger.entity_id) %}
       {{ sensors | selectattr('state', 'eq', 'on') | list | length == 0 }}
-  - condition: or
-    conditions:
-      - condition: template
-        value_template: >
-          {{ not (ignore_start and ignore_end) }}
-      - condition: and
-        conditions:
-          - condition: template
-            value_template: "{{ ignore_start != '' and ignore_end != '' }}"
-          - condition: time
-            after: !input ignore_end
-            before: !input ignore_start
+  - condition: template
+    value_template: >
+      {% if ignore_start and ignore_end %}
+        {{ not (ignore_start <= now().strftime('%H:%M:%S') <= ignore_end) }}
+      {% else %}
+        true
+      {% endif %}
 
 action:
   - delay: !input delay_time
